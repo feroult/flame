@@ -47,13 +47,6 @@ abstract class Game {
 
 }
 
-abstract class GameWidget extends StatelessWidget with Game {
-
-  @override
-  Widget build(BuildContext context) => this.widget;
-
-}
-
 class WidgetBuilder {
   Offset offset = Offset.zero;
   Widget build(Game game) => new Center(
