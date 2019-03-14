@@ -39,11 +39,18 @@ abstract class Game {
   void lifecycleStateChange(AppLifecycleState state) {}
 
   /// Used for debugging
-  void _recordDt(double dt) {}
+  void recordDt(double dt) {}
 
   /// Returns the game widget. Put this in your structure to start rendering and updating the game.
   /// You can add it directly to the runApp method or inside your widget structure (if you use vanilla screens and widgets).
   Widget get widget => builder.build(this);
+
+}
+
+abstract class GameWidget extends StatelessWidget with Game {
+
+  @override
+  Widget build(BuildContext context) => this.widget;
 
 }
 
@@ -121,7 +128,7 @@ class _GameRenderBox extends RenderBox with WidgetsBindingObserver {
 
   void _update(Duration now) {
     double dt = _computeDeltaT(now);
-    game._recordDt(dt);
+    game.recordDt(dt);
     game.update(dt);
   }
 
@@ -161,7 +168,7 @@ class _GameRenderBox extends RenderBox with WidgetsBindingObserver {
 /// It still needs to be subclasses to add your game logic, but the [update], [render] and [resize] methods have default implementations.
 /// This is the recommended structure to use for most games.
 /// It is based on the Component system.
-abstract class BaseGame extends Game {
+mixin BaseGame {
   /// The list of components to be updated and rendered by the base game.
   OrderedSet<Component> components =
       new OrderedSet(Comparing.on((c) => c.priority()));
@@ -211,7 +218,6 @@ abstract class BaseGame extends Game {
   ///
   /// You can override it further to add more custom behaviour.
   /// Beware of however you are rendering components if not using this; you must be careful to save and restore the canvas to avoid components messing up with each other.
-  @override
   void render(Canvas canvas) {
     canvas.save();
     components.forEach((comp) => renderComponent(canvas, comp));
@@ -238,7 +244,6 @@ abstract class BaseGame extends Game {
   ///
   /// It also actually adds the components that were added by the [addLater] method, and remove those that are marked for destruction via the [Component.destroy] method.
   /// You can override it further to add more custom behaviour.
-  @override
   void update(double t) {
     components.addAll(_addLater);
     _addLater.clear();
@@ -251,7 +256,6 @@ abstract class BaseGame extends Game {
   ///
   /// It also updates the [size] field of the class to be used by later added components and other methods.
   /// You can override it further to add more custom behaviour, but you should seriously consider calling the super implementation as well.
-  @override
   @mustCallSuper
   void resize(Size size) {
     this.size = size;
@@ -261,14 +265,14 @@ abstract class BaseGame extends Game {
   /// Returns whether this [Game] is in debug mode or not.
   ///
   /// Returns `false` by default. Override to use the debug mode.
-  /// In debug mode, the [_recordDt] method actually records every `dt` for statistics.
+  /// In debug mode, the [recordDt] method actually records every `dt` for statistics.
   /// Then, you can use the [fps] method to check the game FPS.
   /// You can also use this value to enable other debug behaviors for your game, like bounding box rendering, for instance.
   bool debugMode() => false;
 
   /// This is a hook that comes from the RenderBox to allow recording of render times and statistics.
   @override
-  void _recordDt(double dt) {
+  void recordDt(double dt) {
     if (debugMode()) {
       _dts.add(dt);
     }
@@ -302,7 +306,7 @@ abstract class BaseGame extends Game {
 /// This is a helper implementation of a [BaseGame] designed to allow to easily create a game with a single component.
 ///
 /// This is useful to add sprites, animations and other Flame components "directly" to your non-game Flutter widget tree, when combined with [EmbeddedGameWidget].
-class SimpleGame extends BaseGame {
+class SimpleGame extends Game with BaseGame {
   SimpleGame(Component c) {
     add(c);
   }

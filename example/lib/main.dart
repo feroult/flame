@@ -45,8 +45,12 @@ class Square extends PositionComponent {
   }
 }
 
-class MyGame extends BaseGame {
+class MyGame extends Game with BaseGame {
   MyGame() {
     add(new Square(64.0));
   }
+}
+
+class MyGameWidget extends GameWidget with BaseGame {
+
 }
